@@ -1,8 +1,11 @@
 import java.util.Scanner;
+import java.util.Queue;
+import java.util.LinkedList;
+import java.util.Stack;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-public class p2{
+public class p2 {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
@@ -86,10 +89,166 @@ public class p2{
 
         sc.close();
 
-        System.out.println("Mazes loaded successfully: " + mazes.length);
-        System.out.println("Start: (" + mazes[0].startRow + ", " + mazes[0].startCol + ")");
-        if (mazes[mazes.length - 1].endRow != -1)
-            System.out.println("End: (" + mazes[mazes.length-1].endRow + ", " + mazes[mazes.length-1].endCol + ")");
+        double startTime = System.nanoTime();
+
+        boolean solved = false;
+        if (useQueue) {
+            solved = solveAllMazes(mazes, outCoord, false);
+        } else if (useStack) {
+            solved = solveAllMazes(mazes, outCoord, true);
+        } else if (useOpt) {
+            solved = solveAllMazes(mazes, outCoord, false);
+        }
+
+        double endTime = System.nanoTime();
+
+        if (!solved) {
+            System.out.println("The Wolverine Store is closed.");
+        }
+
+        if (useTime) {
+            double totalTime = (endTime - startTime) / 1000000000.0;
+            System.out.println("Total Runtime: " + totalTime + " seconds");
+        }
+    }
+
+    public static boolean solveAllMazes(Maze[] mazes, boolean outCoord, boolean useStack) {
+        for (int m = 0; m < mazes.length; m++) {
+            Maze maze = mazes[m];
+            int targetRow, targetCol;
+            boolean hasEnd = maze.endRow != -1;
+
+            if (hasEnd) {
+                targetRow = maze.endRow;
+                targetCol = maze.endCol;
+            } else if (maze.walkRow != -1) {
+                targetRow = maze.walkRow;
+                targetCol = maze.walkCol;
+            } else {
+                return false;
+            }
+
+            Position result;
+            if (useStack) {
+                result = dfs(maze, maze.startRow, maze.startCol, targetRow, targetCol);
+            } else {
+                result = bfs(maze, maze.startRow, maze.startCol, targetRow, targetCol);
+            }
+
+            if (result == null) return false;
+
+            markPath(maze, result);
+            printSolution(maze, m, outCoord);
+
+            if (hasEnd) {
+                return true;
+            } else {
+                if (m + 1 < mazes.length) {
+                    mazes[m + 1].startRow = maze.walkRow;
+                    mazes[m + 1].startCol = maze.walkCol;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static Position bfs(Maze maze, int startRow, int startCol, int targetRow, int targetCol) {
+        boolean[][] visited = new boolean[maze.rows][maze.cols];
+        Queue<Position> queue = new LinkedList<Position>();
+
+        Position start = new Position(startRow, startCol, null);
+        queue.add(start);
+        visited[startRow][startCol] = true;
+
+        int[] dr = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
+
+        while (!queue.isEmpty()) {
+            Position curr = queue.remove();
+
+            for (int d = 0; d < 4; d++) {
+                int nr = curr.row + dr[d];
+                int nc = curr.col + dc[d];
+
+                if (nr < 0 || nr >= maze.rows || nc < 0 || nc >= maze.cols) continue;
+                if (visited[nr][nc]) continue;
+                if (maze.grid[nr][nc] == '@') continue;
+
+                Position next = new Position(nr, nc, curr);
+                visited[nr][nc] = true;
+
+                if (nr == targetRow && nc == targetCol) {
+                    return next;
+                }
+
+                queue.add(next);
+            }
+        }
+
+        return null;
+    }
+
+    public static Position dfs(Maze maze, int startRow, int startCol, int targetRow, int targetCol) {
+        boolean[][] visited = new boolean[maze.rows][maze.cols];
+        Stack<Position> stack = new Stack<Position>();
+
+        Position start = new Position(startRow, startCol, null);
+        stack.push(start);
+        visited[startRow][startCol] = true;
+
+        int[] dr = {-1, 1, 0, 0};
+        int[] dc = {0, 0, -1, 1};
+
+        while (!stack.isEmpty()) {
+            Position curr = stack.pop();
+
+            if (curr.row == targetRow && curr.col == targetCol) {
+                return curr;
+            }
+
+            for (int d = 0; d < 4; d++) {
+                int nr = curr.row + dr[d];
+                int nc = curr.col + dc[d];
+
+                if (nr < 0 || nr >= maze.rows || nc < 0 || nc >= maze.cols) continue;
+                if (visited[nr][nc]) continue;
+                if (maze.grid[nr][nc] == '@') continue;
+
+                visited[nr][nc] = true;
+                stack.push(new Position(nr, nc, curr));
+            }
+        }
+
+        return null;
+    }
+
+    public static void markPath(Maze maze, Position end) {
+        Position curr = end;
+        while (curr != null) {
+            if (maze.grid[curr.row][curr.col] != 'W' && maze.grid[curr.row][curr.col] != '$' && maze.grid[curr.row][curr.col] != '|') {
+                maze.grid[curr.row][curr.col] = '+';
+            }
+            curr = curr.parent;
+        }
+    }
+
+    public static void printSolution(Maze maze, int level, boolean outCoord) {
+        if (outCoord) {
+            for (int r = 0; r < maze.rows; r++) {
+                for (int c = 0; c < maze.cols; c++) {
+                    if (maze.grid[r][c] == '+') {
+                        System.out.println("+ " + r + " " + c + " " + level);
+                    }
+                }
+            }
+        } else {
+            for (int r = 0; r < maze.rows; r++) {
+                for (int c = 0; c < maze.cols; c++) {
+                    System.out.print(maze.grid[r][c]);
+                }
+                System.out.println();
+            }
+        }
     }
 
     public static Maze[] readTextMap(Scanner sc, int rows, int cols, int numMazes) throws Exception {
