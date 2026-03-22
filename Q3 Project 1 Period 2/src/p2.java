@@ -138,14 +138,16 @@ public class p2 {
             if (result == null) return false;
 
             markPath(maze, result);
-            printSolution(maze, m, outCoord);
+            printSolution(maze, m, outCoord, result);
 
             if (hasEnd) {
                 return true;
             } else {
                 if (m + 1 < mazes.length) {
-                    mazes[m + 1].startRow = maze.walkRow;
-                    mazes[m + 1].startCol = maze.walkCol;
+                    if (mazes[m + 1].startRow == -1) {
+                        mazes[m + 1].startRow = maze.walkRow;
+                        mazes[m + 1].startCol = maze.walkCol;
+                    }
                 }
             }
         }
@@ -161,7 +163,7 @@ public class p2 {
         visited[startRow][startCol] = true;
 
         int[] dr = {-1, 1, 0, 0};
-        int[] dc = {0, 0, -1, 1};
+        int[] dc = {0, 0, 1, -1};
 
         while (!queue.isEmpty()) {
             Position curr = queue.remove();
@@ -197,7 +199,7 @@ public class p2 {
         visited[startRow][startCol] = true;
 
         int[] dr = {-1, 1, 0, 0};
-        int[] dc = {0, 0, -1, 1};
+        int[] dc = {0, 0, 1, -1};
 
         while (!stack.isEmpty()) {
             Position curr = stack.pop();
@@ -232,14 +234,19 @@ public class p2 {
         }
     }
 
-    public static void printSolution(Maze maze, int level, boolean outCoord) {
+    public static void printSolution(Maze maze, int level, boolean outCoord, Position end) {
         if (outCoord) {
-            for (int r = 0; r < maze.rows; r++) {
-                for (int c = 0; c < maze.cols; c++) {
-                    if (maze.grid[r][c] == '+') {
-                        System.out.println("+ " + r + " " + c + " " + level);
-                    }
+            Stack<Position> pathOrder = new Stack<Position>();
+            Position curr = end;
+            while (curr != null) {
+                if (maze.grid[curr.row][curr.col] == '+') {
+                    pathOrder.push(curr);
                 }
+                curr = curr.parent;
+            }
+            while (!pathOrder.isEmpty()) {
+                Position p = pathOrder.pop();
+                System.out.println("+ " + p.row + " " + p.col + " " + level);
             }
         } else {
             for (int r = 0; r < maze.rows; r++) {

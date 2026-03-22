@@ -1,3 +1,23 @@
 Questions:
 
-Write as many questions as you can based on the project specs.
+What data structure does the Queue-based approach use to find a path?
+What data structure does the Stack-based approach use to find a path?
+What is the difference between BFS and DFS?
+Why does the Queue-based approach find the shortest path?
+What symbol is used to mark Wolverine's path in the maze?
+What symbol represents Wolverine's starting position?
+What symbol represents the Diamond Wolverine Buck?
+What symbol represents a wall in the maze?
+What symbol represents an open walkway between mazes?
+What symbol represents an open walkable area?
+What directions can Wolverine move in the maze?
+Can Wolverine move diagonally?
+What happens if no path exists to the Diamond Wolverine Buck?
+What command line argument enables the stack-based approach?
+What command line argument enables the queue-based approach?
+What command line argument enables the optimal path approach?
+What command line argument enables runtime reporting?
+What command line argument sets the input to coordinate format?
+What command line argument sets the output to coordinate format?
+What command line argument prints help information?
+What exception is thrown when an illegal map character is found?
